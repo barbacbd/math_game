@@ -1,10 +1,8 @@
-# MathGame
+# Mathematical Test Game
 
-# This project was developed for personal/academic use with a partner (Ryan Wolter). All of our
-# old project files have been added to the project at this time since it was not a git project
-# when it was created. The game was programmed in complete C code. It has been years since it was
-# originally written in 2014, and it could use a severe cleanup as of late 2018. 
+The server/client game allows users to login in to a simple database. Once a game has begun, a new
+question will be asked ever x seconds. The first person to answer the question correctly will receive
+a bonus amount of points. Your round begins as soon as you enter the round, so it is possible for
+someone who has logged in late to still receive the most points per round. 
 
-# The project will allow users to login to the game. Each round a new mathematical question will
-# be asked and each user should answer. Based on when you enter the round it is possible for 
-# you to answer a question faster than all other users and receive extra points.
+> Originally developed for personal & academic use with a partner (Ryan Wolter) in 2014.
