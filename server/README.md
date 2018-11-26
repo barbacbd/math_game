@@ -2,15 +2,11 @@
 
 The server should only be executed on one computer. All clients need to know what port and ip-address the server is allowing them to connect to. 
 
+> Download [MySQL Connector](https://dev.mysql.com/downloads/connector/c/)
+
 ## Building from Source
 
-> The user must have cmake 2.6 or greater installed on the computer
-
-- *rm -rf build;*
-- *mkdir build;*
-- *cd build;*
-- *cmake ..;*
-- *make -j4;*
+- *make;*
 
 ## Execution
 
