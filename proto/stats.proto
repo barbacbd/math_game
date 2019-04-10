@@ -1,0 +1,38 @@
+syntax = "proto3";
+
+package game.msgs;
+
+/// Theses statistics can be used for each individual player, in which case,
+/// the server will send each client their specific statistical information
+/// at the end of each round.
+
+/// The server will also send total round statistics to each client at the 
+/// end of each round. This information includes data from all other clients
+/// and it applies ONLY to the previous round.
+
+message Statistics
+{
+	uint32 total_points_earned = 1;
+	uint32 correct_answers = 2;
+	uint32 incorrect_answers = 3;
+}
+
+message RoundStatistics
+{
+	Statistics player_stats = 1;
+	Statistics round_stats = 2;
+}
+
+message HighScores
+{
+	message Player
+	{
+		string name = 1;
+		uint32 score = 2;
+
+		/// this could be seen as useless since the list should be ordered
+		uint32 place = 3;
+	}
+
+	repeated Player players = 1;
+}
