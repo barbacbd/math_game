@@ -1,0 +1,48 @@
+syntax = "proto3";
+
+package game.msgs;
+
+message User
+{
+	string name = 1;
+
+	/// add any additional user information below
+}
+
+message Login
+{
+	enum LoginType
+	{
+		REGISTERING = 1;
+		RETURNING = 2;
+	}
+
+	User user = 1;
+
+	/// TODO: make this password encrypted
+	string password = 2;
+
+	LoginType type = 3;
+}
+
+message LoginResponse
+{
+	/// returning the user if successful. if not, then this field will not be set
+	User user = 1;
+
+	/// keep track of the number of attempts
+	uint32 attempt = 2;
+
+	uint32 max_attempts = 3;
+
+	enum LoginStatus
+	{
+		SUCCESS = 1;
+		FAILURE = 2;
+	}
+
+	LoginStatus status = 4;
+
+	/// time the user has attempted to login to the system
+	uint64 timestamp = 5;
+}
