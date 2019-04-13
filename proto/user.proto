@@ -13,8 +13,8 @@ message Login
 {
 	enum LoginType
 	{
-		REGISTERING = 1;
-		RETURNING = 2;
+		REGISTERING = 0;
+		RETURNING = 1;
 	}
 
 	User user = 1;
@@ -37,8 +37,8 @@ message LoginResponse
 
 	enum LoginStatus
 	{
-		SUCCESS = 1;
-		FAILURE = 2;
+		SUCCESS = 0;
+		FAILURE = 1;
 	}
 
 	LoginStatus status = 4;

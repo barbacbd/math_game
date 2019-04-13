@@ -1,9 +1,24 @@
 /* connectsock.c - connectsock */
-#include <sys/types.h>
+
+#ifdef _WIN32
+
+/** Include all Windows headers if this is the windows platform */
+#include <winsock2.h>
+#include <Ws2tcpip.h>
+
+#else
+
+/** not windows? ehh lets use the posix libraries */
 #include <sys/socket.h>
-#include <netinet/in.h>
 #include <arpa/inet.h>
 #include <netdb.h>
+#include <unistd.h>
+#include <sys/types.h>
+#include <netinet/in.h>
+
+#endif
+
+/** Common inclusions */
 #include <string.h>
 #include <stdlib.h>
 #include <errno.h>
@@ -98,27 +113,25 @@ int connectsock(const char *host, const char *service, const char *transport)
 	return s;
 }
 
-/********************************************************************
-connectUDP - connect to a specified UDP service on a specified host
-********************************************************************/
-/*
-*Arguments:
-*	host 	 - name of host to which the connection is desired
-*	services - service associated with the desired port 
-*/ 
+/**
+ * Wrapper function for connecting a socket, where the protocol can ONLY be UDP. As with the
+ * connectsock() function, the user must pass in the string representation of the host and service.
+ * @param host - name of host to which connection is desired
+ * @param service - service associated with the desired port
+ * @return socket descriptor number
+ */
 int connectUDP(const char *host, const char *service)
 {
 	return connectsock(host, service, "udp");
 }
 
-/********************************************************************
-connectTCP - connect to a specified TCP service on a specified host
-********************************************************************/
-/*
-*Arguments:
-*	host 	 - name of host to which the connection is desired
-*	services - service associated with the desired port 
-*/
+/**
+ * Wrapper function for connecting a socket, where the protocol can ONLY be TCP. As with the
+ * connectsock() function, the user must pass in the string representation of the host and service.
+ * @param host - name of host to which connection is desired
+ * @param service - service associated with the desired port
+ * @return socket descriptor number
+ */
 int connectTCP(const char *host, const char *service)
 {
 	return connectsock(host, service, "tcp");

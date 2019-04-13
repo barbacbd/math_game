@@ -29,10 +29,10 @@ message Response
 {
 	enum UserResponse
 	{
-		CORRECT = 1;
-		INCORRECT = 2;
-		OUT_OF_TIME  = 3;
-		JOINED_TOO_LATE = 4;
+		CORRECT = 0;
+		INCORRECT = 1;
+		OUT_OF_TIME  = 2;
+		JOINED_TOO_LATE = 3;
 	}
 
 	/// repeat the question in the event that the user forgot what
