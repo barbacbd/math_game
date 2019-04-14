@@ -5,7 +5,9 @@ cmake_minimum_required(VERSION 3.4)
 
 
 ###############################################################################
+#
 # Try to use C++11
+#
 ###############################################################################
 include(CheckCXXCompilerFlag)
 CHECK_CXX_COMPILER_FLAG("-std=c++11" COMPILER_SUPPORTS_CXX11)
@@ -24,7 +26,10 @@ set(CMAKE_INSTALL_PREFIX "/usr")
 
 
 ###############################################################################################################################
+#
 # create the temp library for the proto messages
+#
+###############################################################################################################################
 set(PROTO_FILES
 	${CMAKE_CURRENT_SOURCE_DIR}/round.proto
 	${CMAKE_CURRENT_SOURCE_DIR}/stats.proto
@@ -64,41 +69,54 @@ include_directories(${CMAKE_INSTALL_PREFIX}/include)
 link_directories(${LIBDIR})
 ###############################################################################################################################
 
-###############################################################################################################################
-# CMake wanted at least a set of source and header files. We are giving 
-# it one fake set to build this library
-set(TEST_SOURCES test.cpp)
-set(TEST_HEADERS test.h)
+add_library(game_msgs SHARED  $<TARGET_OBJECTS:game_msgs_proto>)
 
-
-# Build our library for the math game messages
-
-# Include protoc generated headers
-include_directories(${ProtobufIncludePath})
-
-set(EXTRA_OPTIONS "-fPIC")
-set_source_files_properties(${TEST_SOURCES}
-                            PROPERTIES
-                            COMPILE_FLAGS  "${EXTRA_OPTIONS}")
-
-add_library(GAME_MSGS_temp OBJECT ${TEST_SOURCES} ${TEST_HEADERS})
-###############################################################################################################################
-
-add_library(game_msgs SHARED  $<TARGET_OBJECTS:GAME_MSGS_temp> $<TARGET_OBJECTS:game_msgs_proto>)
-
-
-source_group(headers FILES ${TEST_HEADERS})
-source_group(sources FILES ${TEST_SOURCES})
 
 install( TARGETS game_msgs
 	    	RUNTIME DESTINATION ${BINDIR}
                 LIBRARY DESTINATION ${LIBDIR}
                 ARCHIVE DESTINATION ${LIBDIR})
 
-#if(BUILD_PYTHON)
-#    # Install the python module
-#    install(CODE "message(\"-- Installing: python module to system\")" CODE "execute_process(WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/python COMMAND ./install_module.sh)")
-#endif()
+###############################################################################################################################
+#
+# Section: Python Module building
+# Let's build the python module so that we can use these protobuf files with different versions of the software
+#
+#
+#
+###############################################################################################################################
+
+PROTOBUF_GENERATE_PYTHON(PYTHON_PROTO_FILES ${PROTO_FILES})
+set(PYTHON_SOURCES ${PYTHON_PROTO_FILES})
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/install_module.sh.in ${CMAKE_BINARY_DIR}/python/install_module.sh)
+
+# Move the blank init file into all subdirectories so that python knows that it is a submodule
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/__init__.py.in ${CMAKE_BINARY_DIR}/python/game/__init__.py)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/__init__.py.in ${CMAKE_BINARY_DIR}/python/game/msgs/__init__.py)
+
+# setup.py defines the module
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/setup.py.in ${CMAKE_BINARY_DIR}/python/setup.py)
+
+add_library(game_msgs_python SHARED ${PYTHON_PROTO_FILES})
+set_target_properties(game_msgs_python PROPERTIES LINKER_LANGUAGE C)
+file(MAKE_DIRECTORY "${CMAKE_BINARY_DIR}/python/game/msgs/")
+
+# finally, move all of the files we generated into this directory
+add_custom_command(TARGET game_msgs_python PRE_BUILD COMMAND "mv" ARGS "${CMAKE_CURRENT_BINARY_DIR}/*.py" "${CMAKE_BINARY_DIR}/python/game/msgs/")
+
+# execute the installation script that we just installed
+install(CODE "execute_process(WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/python COMMAND ./install_module.sh)")
+
+
+###############################################################################################################################
+#
+# Section: JAva Module building
+# Let's build the java package so that we can use these protobuf files with different versions of the software
+#
+#
+#
+###############################################################################################################################
+
 
 
 # Install a cmake file that will be used for finding this library 

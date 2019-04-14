@@ -1,0 +1,12 @@
+from setuptools import setup, find_packages
+
+setup(
+    name='game-msgs',
+    version='0.0..1',
+    description='Python module for the game messages',
+    author='Brent Barbachem',
+    author_email='barbacbd@dukes.jmu.edu',
+    license='Proprietary',
+    packages=find_packages(),
+    include_package_data=True,
+)

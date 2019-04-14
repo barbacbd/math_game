@@ -1,0 +1,4 @@
+#!/usr/bin/env bash                                                                                                                                                                                                
+# NOTE: sudo user must also know what pip3 is. If pip3 is not
+# known by the sudo user, then the installation will fail.
+pip3 install .
