@@ -136,10 +136,10 @@ ssize_t writen(int fd, const void *vptr, size_t n)
 	/// make sure that n is not greater than the size of vptr length
 
 	size_t nleft = n;
-	ssize_t nwritten;
+	ssize_t nwritten = 0;
 	const char *ptr = vptr;
 
-	for(size_t nleft = n; nleft > 0; nleft -= nwritter; ptr += nwritten)
+	for(nleft = n; nleft > 0; nleft -= nwritten, ptr += nwritten)
 //	while (nleft > 0)
 	{
 		if((nwritten = write(fd, ptr, nleft)) <= 0)
