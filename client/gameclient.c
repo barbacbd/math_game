@@ -21,6 +21,8 @@ gcc -o gameclient tcpgameclient.c readwrite.c connectsock.c -l pthread
 #include <fcntl.h>
 #include <poll.h>
 #include <signal.h>
+#include "../common/socket.h"
+#include "../common/readwrite.h"
 
 //State options
 #define UNANSWERED 0
@@ -117,9 +119,7 @@ long long current_timestamp() {
  */
 void Play(int fd)
 {
-	time_t start;
 	char buf[BUFSIZE];
-	char outbuf[BUFSIZE];
 	int n;
     long long lastTime = 0;
 	signal(SIGINT, myHandler);
@@ -194,11 +194,8 @@ void Play(int fd)
  */
 int waitForUserInput(int fd)
 {
-	time_t start;
-	char buf[BUFSIZE];
 	char outbuf[BUFSIZE];
 	char answerbuf[BUFSIZE];
-	int n;
 	long long time0, time1, deltatime;
 	struct pollfd stdin_poll;
 	stdin_poll.fd = STDIN_FILENO;
@@ -250,15 +247,11 @@ int waitForUserInput(int fd)
  */
 int TCPgame(const char *host, const char *service)
 {
-	char	outbuf[LINELEN + 1];	/*buffer for one line of text*/
-	char	inbuf[LINELEN + 1]; 	/*buffer for one line of text*/
 	int 	s, n;					/*socket descriptor, read count*/
-
-	int 	outchars, inchars;		/*characters sent and received*/
 	char    temp[5];                /*holds the answer to the first question*/
 	char buf[LINELEN+1]; /*buffer for one line of text */
 
-	s = connectTCP(host, service);
+	s = connectClientTCP(host, service);
 	globalfd = s;
 	
 	printf("Welcome to the TCP Math Game!\n\n"
@@ -271,7 +264,6 @@ int TCPgame(const char *host, const char *service)
 	char * newold = "old";
 	char * new = "";
 	char login[205];
-	int holder;
 	if(temp[0] == 'y')
 	{
 		newold = "new";

@@ -1,8 +1,29 @@
-CC = gcc
-MYSQLCFLAGS = -I/usr/include/mysql -DBIG_JOINS=1 -fno-strict-aliasing -g
-MYSQLLIBS = -L/usr/lib64/mysql -lmysqlclient -lpthread -lz -lm -lrt -ldl
+all: server
 
-testserver: gameserver.c readwrite.c passivesock.c queryFile.c
-	$(CC) -o server gameserver.c readwrite.c passivesock.c $(MYSQLCFLAGS) queryFile.c $(MYSQLLIBS) -l pthread
-	
-	
+# common definitions
+CC = gcc
+
+INC_DIR = ../common
+
+CFLAGS = -I$(INC_DIR) -l pthread
+
+# find all header files from the include directory
+_DEPS := $(shell find $(INC_DIR) -name '*.h')
+DEPS = $(patsubst %, $(INC_DIR)/%,$(_DEPS))
+OBJ = $(patsubst %, %, gameserver.o)
+
+%.o: %.c $(DEPS)
+	$(CC) -c -o $@ $< $(CFLAGS)
+
+server: $(OBJ)
+	$(CC) -o $@ $^ $(CFLAGS)
+
+# stop make from doing anything file a file named clean
+.PHONY: clean
+
+# Remove:
+# Object files
+# Executable(s) - look at using $(ALL)
+# remnants of old files (~)
+clean:
+	rm -f *.o *~ server

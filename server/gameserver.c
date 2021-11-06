@@ -1,20 +1,5 @@
-/*Brent Barbachem and Ryan Wolter */
-
-/* 
-
-
-    how to compile the server
-
-    gcc -o testserver testserver2.c readwrite.c passivesock.c $(mysql_config --cflags) queryFile.c $(mysql_config --libs) -l pthread
-
-    ./testserver
-
-
- */
-
 #include <unistd.h>
 #include <fcntl.h>
-#include <mysql/mysql.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -24,6 +9,8 @@
 #include <sys/time.h>
 #include <sys/errno.h>
 #include <netinet/in.h>
+#include "../common/readwrite.h"
+#include "../common/socket.h"
 
 #define QLEN		32
 #define BUFSIZE		4096
@@ -96,14 +83,14 @@ int main(int argc, char *argv[])
 		err_quit(msg);
 	}
 
-	//Log all users out by setting status to 0
-	logoutAll();
+	// Starting a fresh server instance,
+	// any temporary user data was lost (considered logged out)
 
 	memset((char *) &roundStats, 0, sizeof(roundStats)-sizeof(pthread_mutex_t));
 
 	memset((char *) &rI, 0, sizeof(rI) - sizeof(pthread_mutex_t));
 
-	msock = passiveTCP(service, QLEN);
+	msock = connectServerTCP(service, QLEN);
 
 
 
@@ -157,8 +144,11 @@ void* masterFunc(void *vfd)
 	char query[100];
 	while (1)
 	{
+	  printf("Starting a master func\n");
 		// Retrieve the question and answer
+#ifdef USE_THIS
 		questionQuery(query, answer, sizeof(query), sizeof(answer));
+#endif
 		pthread_mutex_lock(&rI.ri_mutex);
 			rI.globaltime = current_timestamp();
 			rI.question = query;
@@ -176,7 +166,9 @@ void* masterFunc(void *vfd)
 			rI.roundStatus = AFTERROUND; //Not in round, after round
 		pthread_mutex_unlock(&rI.ri_mutex);
 		//Update the leader
+#ifdef USE_THIS
 		updatePoints(roundStats.leader, 5);
+#endif
 		
 		//Sleep for 10 seconds (busy)
 		sleep(10);
@@ -242,7 +234,9 @@ void* threadEntry(void *vfd)
 			token = strtok(NULL, ":");
 			i ++;
 		}
+#ifdef USE_THIS
 		temp = loginNew(username, password);
+#endif
 		snprintf(outbuf, sizeof(outbuf), "n:%d;", temp);
 		writen(fd, outbuf, strlen(outbuf));
 		break;
@@ -259,7 +253,9 @@ void* threadEntry(void *vfd)
 			token = strtok(NULL, ":");
 			i ++;
 		}
+#ifdef USE_THIS
 		temp = loginOld(username, password);
+#endif
 		snprintf(outbuf, sizeof(outbuf), "o:%d;", temp);
 		writen(fd, outbuf, strlen(outbuf));
 		break;
@@ -363,9 +359,11 @@ void Round(int fd, char* username)
 				//Test the correctness of the answer.
 				if(answerInt == userAns)
 				{
+#ifdef USE_THIS
 					//Update the database
 					updatePoints(username, 5);
 					updateCorrect(username);
+#endif
                     
                     snprintf(outbuf, sizeof(outbuf), "f:You have answered correctly!\n\n;");
 				    writen(fd, outbuf, strlen(outbuf));
@@ -392,7 +390,9 @@ void Round(int fd, char* username)
 					    "f:Sorry, you have answered incorrectly.\n\n;");
 				    writen(fd, outbuf, strlen(outbuf));
 				}
+#ifdef USE_THIS
 				updateAttempts(username);   //update the number of attempts for the user
+#endif
 				
 				pthread_mutex_lock(&roundStats.st_mutex);
 					roundStats.total_time += time;
@@ -404,7 +404,9 @@ void Round(int fd, char* username)
 			else if (buf[0] == 'e' && buf[1] == ':')
 			{
 				//Recieved an exit from the client.
+#ifdef USE_THIS
 				logout(username);
+#endif
 				return;
 			}
 			
@@ -446,6 +448,7 @@ void Round(int fd, char* username)
  */
 void afterRound(int fd, char *username)
 {
+#ifdef USE_THIS
 	char outbuf[BUFSIZE];
 
 	//total points earned, number attempts, number correct, number incorrect
@@ -464,6 +467,7 @@ void afterRound(int fd, char *username)
 	//This section loops through up to five users who are the top
 	//scoring users of all time, and writes them to clients.
 	highscoreQuery(result);
+
 	int nextLocation = 0;
 	char * hs_head;
 	hs_head = "\n\nHigh Scores\n---------------------------------------\n";
@@ -477,11 +481,12 @@ void afterRound(int fd, char *username)
 	hs_foot = "\n---------------------------------------\n\n";
 	snprintf(&outbuf[strlen(outbuf) - 1], sizeof(outbuf), "%s;", hs_foot);
 	writen(fd, outbuf, strlen(outbuf));
-	
+
 	//This gives individual statistics for clients.
     hs_head = "These are your statistics.\n"
         "---------------------------------------\n";
     hs_foot = "---------------------------------------\n";
+
 	getuserStats(&tpe, &na, &nc, &nic, username);
 	snprintf(outbuf, sizeof(outbuf), "u:%s%s%d\n%s%d\n%s%d\n%s%d\n%s\n;",
 			hs_head, "Total Points Earned:          ", tpe,
@@ -494,7 +499,9 @@ void afterRound(int fd, char *username)
 	hs_head = "These are the total player statistics.\n"
                 "---------------------------------------\n";
     hs_foot = "---------------------------------------\n";
+
 	getStats(&tpe, &na, &nc, &nic);
+
 	snprintf(outbuf, sizeof(outbuf), "o:%s%s%d\n%s%d\n%s%d\n%s%d\n%s\n;",
 			hs_head, "Total Points Earned:          ", tpe,
 			"Number of questions answered: ", na,
@@ -513,4 +520,5 @@ void afterRound(int fd, char *username)
 		
 	}
 	writen(fd, outbuf, strlen(outbuf));
+#endif
 }
